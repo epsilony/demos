@@ -1,0 +1,76 @@
+buildscript {
+	if (!hasProperty('nexusPublicUrl')){
+		ext.nexusPublicUrl = 'https://epsilony.net/nexus/content/groups/public/'
+	}
+	repositories{
+		jcenter()
+		maven{ url nexusPublicUrl }
+	}
+}
+
+apply plugin: 'eclipse'
+apply plugin: 'java'
+apply plugin: 'groovy'
+
+eclipse{
+	classpath {
+		downloadSources=true
+		downloadJavadoc=true
+	}
+}
+
+
+dependencies { compile localGroovy() }
+
+apply plugin: 'maven'
+
+repositories{
+	jcenter()
+	maven{ url nexusPublicUrl}
+}
+
+dependencies {
+	compile 'com.google.guava:guava:19.0'
+	testCompile 'junit:junit:4.12'
+}
+
+group = 'net.epsilony.gradle'
+ext._version = '0.1.0'
+
+if(hasProperty('env')&&env=='production'){
+	version=_version
+}else{
+	version="${_version}-SNAPSHOT"
+}
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+	classifier = 'sources'
+	from sourceSets.main.allSource
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+	classifier = 'javadoc'
+	from javadoc.destinationDir
+}
+
+artifacts {
+	archives sourcesJar
+	archives javadocJar
+}
+
+uploadArchives {
+	repositories {
+		mavenDeployer {
+			repository(url: nexusDeployReleaseUrl) {
+				authentication(userName: nexusDeployUser, password: nexusDeployPassword)
+			}
+			snapshotRepository(url: nexusDeploySnapshotUrl){
+				authentication(userName: nexusDeployUser, password: nexusDeployPassword)
+			}
+		}
+	}
+}
+
+sourceCompatibility = '1.7'
+
+task wrapper(type: Wrapper) { gradleVersion = '2.11' }

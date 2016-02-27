@@ -1,0 +1,4 @@
+nexusDeploySnapshotUrl=http://epsilony.net/nexus/content/repositories/snapshots
+nexusDeployReleaseUrl=https://epsilony.net/nexus/content/repositories/release
+nexusDeployUser=USER
+nexusDeployPassword=PASSWORD
