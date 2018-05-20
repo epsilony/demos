@@ -1,0 +1,1 @@
+export const AUTH_STATE_KEY_PREFIX = 'auth_state:';

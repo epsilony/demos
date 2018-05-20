@@ -1,0 +1,8 @@
+{
+  "aad": {
+    "clientId": "b6155ecb-7f6e-4c22-aae5-2c0935174be0",
+    "redirectUri": "http://localhost:3000/auth/aad/cb",
+    "clientSecret": "a_secret_value_from_app_keys"
+  },
+  "keys": ["sec1", "sec2", "sec3"]
+}
