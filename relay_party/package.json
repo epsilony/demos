@@ -1,9 +1,9 @@
 {
   "name": "relay_party",
   "version": "1.0.0",
-  "description": "An OAuth2 relay party with simple session and JWT issuing. Based on Koa2 and TypeScript.",
+  "description": "An OAuth2 relay party based on Koa2 and TypeScript.",
   "author": "epsilony@epsilony.net",
-  "license": "ISC",
+  "license": "MIT",
   "scripts": {
     "start": "npm run serve",
     "build": "npm run build-ts && npm run tslint",
