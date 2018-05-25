@@ -34,6 +34,7 @@
     "@types/request": "^2.47.0",
     "@types/request-promise-native": "^1.0.14",
     "@types/uuid": "^3.4.3",
+    "@types/winston": "^2.3.9",
     "convict": "^4.2.0",
     "debug": "^3.1.0",
     "koa": "^2.5.1",
@@ -47,6 +48,7 @@
     "lodash": "^4.17.10",
     "request": "^2.86.0",
     "request-promise-native": "^1.0.5",
-    "uuid": "^3.2.1"
+    "uuid": "^3.2.1",
+    "winston": "^2.4.2"
   }
 }

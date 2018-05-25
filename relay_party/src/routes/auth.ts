@@ -5,6 +5,16 @@ import { AUTH_STATE_KEY_PREFIX } from './auth/auth-consts';
 import aadAuthRouterFactory from './auth/aad';
 import githubAuthRouterFactory from './auth/github';
 
+import uuid from 'uuid/v4';
+
+const AAD_STATE_KEY_PREFIX = AUTH_STATE_KEY_PREFIX + 'aad:';
+const GITHUB_STATE_KEY_PREFIX = AUTH_STATE_KEY_PREFIX + 'github:';
+
+const TYPE_TO_STATE_KEY_PREFIX: { [index: string]: string } = {
+    'aad': AAD_STATE_KEY_PREFIX,
+    'github': GITHUB_STATE_KEY_PREFIX
+};
+
 function authRouterFactory(prefix: string, options: any): Router {
 
     const router = new Router();
@@ -25,6 +35,24 @@ function authRouterFactory(prefix: string, options: any): Router {
                 delete ctx.session[key];
             }
         }
+        await next();
+    });
+
+    router.get('state_assign', '/:type/login', async (ctx, next) => {
+        let type = ctx.params.type as string;
+        if (!type) {
+            ctx.status = 404;
+            return;
+        }
+        type = type.toLowerCase();
+        const prefix = TYPE_TO_STATE_KEY_PREFIX[type];
+        if (!prefix) {
+            ctx.status = 404;
+            return;
+        }
+        const state = uuid();
+        ctx.session[prefix + state] = new Date().getTime() + 60 * 1000;
+        ctx._loginState = state;
         await next();
     });
 

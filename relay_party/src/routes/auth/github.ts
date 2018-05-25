@@ -3,25 +3,15 @@ import { URL } from 'url';
 import uuid from 'uuid/v4';
 import request from 'request-promise-native';
 import { AUTH_STATE_KEY_PREFIX } from './auth-consts';
+import logger from '../../utils/logger';
+import { authUrl } from './auth-utils';
 
 const GITHUB_AUTH_URL_BASE = 'https://github.com/login/oauth';
 const GITHUB_AUTH_URL = GITHUB_AUTH_URL_BASE + '/authorize';
 const GITHUB_TOKEN_URL = GITHUB_AUTH_URL_BASE + '/access_token';
 const GITHUB_USER_API_URL = 'https://api.github.com/user';
 
-const GITHUB_STATE_KEY_PREFIX = AUTH_STATE_KEY_PREFIX + ':github:';
-
-function githubRedirectUrl(clientId: string, redirect_uri: string, state: string): string {
-    const url = new URL(GITHUB_AUTH_URL);
-    const params = url.searchParams;
-
-    params.set('client_id', clientId);
-    params.set('redirect_uri', redirect_uri);
-    params.set('scope', 'user');
-    params.set('state', state);
-
-    return url.toString();
-}
+const GITHUB_STATE_KEY_PREFIX = AUTH_STATE_KEY_PREFIX + 'github:';
 
 export default function githubAuthRouterFactory(prefix: string, clientId: string, redirectUri: string, clientSecret: string): Router {
     const router = new Router();
@@ -29,9 +19,14 @@ export default function githubAuthRouterFactory(prefix: string, clientId: string
     router.prefix(prefix);
 
     router.get('GitHub login', '/login', (ctx) => {
-        const state = uuid();
-        ctx.session[GITHUB_STATE_KEY_PREFIX + state] = new Date().getTime() + 60 * 1000;
-        ctx.redirect(githubRedirectUrl(clientId, redirectUri, state));
+        ctx.redirect(authUrl(
+            {
+                authUrl: GITHUB_AUTH_URL,
+                clientId: clientId,
+                redirectUri: redirectUri,
+                state: ctx._loginState,
+                extras: { scope: "user" }
+            }));
     });
 
     router.get('GitHub callback', '/cb', async (ctx, next) => {
@@ -76,7 +71,8 @@ export default function githubAuthRouterFactory(prefix: string, clientId: string
 
         const userResponseBody = await request.get(GITHUB_USER_API_URL, {
             headers: {
-                Authorization: `${tokenResponse.token_type} ${tokenResponse.access_token}`
+                Authorization: `${tokenResponse.token_type} ${tokenResponse.access_token}`,
+                "User-Agent": 'epsilony.net'
             }
         });
 

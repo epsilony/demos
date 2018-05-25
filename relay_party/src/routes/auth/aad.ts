@@ -1,28 +1,15 @@
 import Router from 'koa-router';
 import { URL } from 'url';
-import uuid from 'uuid/v4';
 import request from 'request-promise-native';
 import { AUTH_STATE_KEY_PREFIX } from './auth-consts';
+import { authUrl } from './auth-utils';
 
 const AAD_AUTH_URL_BASE = 'https://login.microsoftonline.com/common/oauth2';
 const AAD_AUTH_URL = AAD_AUTH_URL_BASE + '/authorize';
 const AAD_TOKEN_URL = AAD_AUTH_URL_BASE + '/token';
 const MS_GRAPH_URL = 'https://graph.microsoft.com/v1.0/me/';
 
-const AAD_STATE_KEY_PREFIX = AUTH_STATE_KEY_PREFIX + ':aad:';
-
-function aadRedirectUrl(clientId: string, redirect_uri: string, state: string): string {
-    const url = new URL(AAD_AUTH_URL);
-    const params = url.searchParams;
-
-    params.set('client_id', clientId);
-    params.set('redirect_uri', redirect_uri);
-    params.set('response_mode', 'form_post');
-    params.set('response_type', 'code');
-    params.set('state', state);
-
-    return url.toString();
-}
+const AAD_STATE_KEY_PREFIX = AUTH_STATE_KEY_PREFIX + 'aad:';
 
 export default function authRouterFactory(prefix: string, clientId: string, redirectUri: string, clientSecret: string): Router {
     const router = new Router();
@@ -30,9 +17,17 @@ export default function authRouterFactory(prefix: string, clientId: string, redi
     router.prefix(prefix);
 
     router.get('AzureAD login', '/login', (ctx) => {
-        const state = uuid();
-        ctx.session[AAD_STATE_KEY_PREFIX + state] = new Date().getTime() + 60 * 1000;
-        ctx.redirect(aadRedirectUrl(clientId, redirectUri, state));
+        ctx.redirect(authUrl(
+            {
+                authUrl: AAD_AUTH_URL,
+                clientId: clientId,
+                redirectUri: redirectUri,
+                state: ctx._loginState,
+                extras: {
+                    response_mode: 'form_post',
+                    response_type: 'code'
+                }
+            }));
     });
 
     router.post('AzureAD callback', '/cb', async (ctx, next) => {
